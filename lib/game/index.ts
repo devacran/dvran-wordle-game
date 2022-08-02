@@ -1,4 +1,6 @@
-export function validateWord(inputWord: string, baseWord: string) {
+export function validateWord(_inputWord: string, _baseWord: string) {
+  const inputWord = _inputWord.toLowerCase();
+  const baseWord = _baseWord.toLowerCase();
   const result: number[] = [];
   if (inputWord.length > baseWord.length) {
     throw new Error("too large");

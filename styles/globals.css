@@ -24,3 +24,13 @@ a {
     background: black;
   }
 }
+
+.valid {
+  background-color: green;
+}
+.invalid {
+  background-color: yellow;
+}
+.disabled {
+  background-color: grey;
+}
