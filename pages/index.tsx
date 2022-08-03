@@ -2,8 +2,7 @@ import type { NextPage } from "next";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
-import KeyBox from "../components/Game/components/CharBox";
-
+import CharBox from "../components/Game/components/CharBox";
 const Home: NextPage = (props) => {
   const { replace } = useRouter();
   // useEffect(() => {
@@ -14,48 +13,90 @@ const Home: NextPage = (props) => {
   // }, []);
 
   return (
-    <main>
-      <h1>Como Jugar</h1>
-      <p>Adivina la palabra oculta en 5 intentos.</p>
-      <p>Cada intento debe ser una palabra valida de 5 letras</p>
-      <p>
-        Despues de cada intento el color de las letras cambia para mostrar que
-        tan cerca estas de acrtar la palabra.
-      </p>
-      <h3>Ejemplos</h3>
-      <KeyBox state="idle" char="G" />
-      <KeyBox state="correct" char="A" />
-      <KeyBox state="idle" char="T" />
-      <KeyBox state="idle" char="O" />
-      <KeyBox state="idle" char="S" />
-      <p>
-        La letra <strong>G</strong>está en la palabra y en la posición correcta.
-      </p>
-      <KeyBox state="idle" char="V" />
-      <KeyBox state="incorrect" char="O" />
-      <KeyBox state="idle" char="C" />
-      <KeyBox state="idle" char="A" />
-      <KeyBox state="idle" char="L" />
-      <p>
-        La letra <strong>C</strong>está en la palabra y pero en la posición
-        incorrecta.
-      </p>
-      <KeyBox state="idle" char="C" />
-      <KeyBox state="idle" char="A" />
-      <KeyBox state="idle" char="N" />
-      <KeyBox state="idle" char="T" />
-      <KeyBox state="disabled" char="O" />
-      <p>
-        La letra <strong>O</strong> no esta en la palabra.
-      </p>
+    <main className="container m-5 border rounded ">
+      <div className="p-5">
+        <h1 className="text-center">Como Jugar</h1>
+        <p>Adivina la palabra oculta en 5 intentos.</p>
+        <p>Cada intento debe ser una palabra valida de 5 letras</p>
+        <p>
+          Despues de cada intento el color de las letras cambia para mostrar que
+          tan cerca estas de acrtar la palabra.
+        </p>
+        <h6>Ejemplos</h6>
+        <div className="d-flex">
+          <div className="col">
+            <CharBox state="idle" char="G" />
+          </div>
+          <div className="col">
+            <CharBox state="valid" char="A" />
+          </div>
+          <div className="col">
+            <CharBox state="idle" char="T" />
+          </div>
+          <div className="col">
+            <CharBox state="idle" char="O" />
+          </div>
+          <div className="col">
+            <CharBox state="idle" char="S" />
+          </div>
+        </div>
 
-      <p>
-        Puede haber letras repetidas. Las pistas son independientes para cada
-        letra.
-      </p>
+        <p>
+          La letra <strong>G</strong>está en la palabra y en la posición
+          correcta.
+        </p>
+        <div className="d-flex">
+          <div className="col">
+            <CharBox state="idle" char="V" />
+          </div>
+          <div className="col">
+            <CharBox state="invalid" char="O" />
+          </div>
+          <div className="col">
+            <CharBox state="idle" char="C" />
+          </div>
+          <div className="col">
+            <CharBox state="idle" char="A" />
+          </div>
+          <div className="col">
+            <CharBox state="idle" char="L" />
+          </div>
+        </div>
+        <p>
+          La letra <strong>C</strong>está en la palabra y pero en la posición
+          incorrecta.
+        </p>
+        <div className="d-flex">
+          <div className="col">
+            <CharBox state="idle" char="C" />
+          </div>
+          <div className="col">
+            <CharBox state="valid" char="A" />
+          </div>
+          <div className="col">
+            <CharBox state="idle" char="N" />
+          </div>
+          <div className="col">
+            <CharBox state="idle" char="T" />
+          </div>
+          <div className="col">
+            <CharBox state="disabled" char="O" />
+          </div>
+        </div>
+        <p>
+          La letra <strong>O</strong> no esta en la palabra.
+        </p>
 
-      <p>Una palabra nueva cada 5 min</p>
-      <Link href={"/game"}>!JUGAR</Link>
+        <p>
+          Puede haber letras repetidas. Las pistas son independientes para cada
+          letra.
+        </p>
+
+        <p>Una palabra nueva cada 5 min</p>
+        <div className="btn btn-success">
+          <Link href={"/game"}>!JUGAR</Link>
+        </div>
+      </div>
     </main>
   );
 };

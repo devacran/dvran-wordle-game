@@ -4,9 +4,9 @@ import Game from "../../components/Game";
 
 const GamePage: NextPage = () => {
   return (
-    <main>
+    <div>
       <Game />
-    </main>
+    </div>
   );
 };
 

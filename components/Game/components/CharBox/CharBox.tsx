@@ -1,13 +1,12 @@
 import React, { FC } from "react";
 import { CharBoxProps } from "./CharBox.types";
-
+import CharBoxStyles from "./CharBox.module.css";
 const CharBox: FC<CharBoxProps> = ({ state, char }) => {
   return (
     <div
-      className={`key-box ${state}`}
-      style={{ width: 80, height: 80, border: "2px solid black" }}
+      className={`${CharBoxStyles.container} border rounded ${CharBoxStyles.idle} ${CharBoxStyles[state]} `}
     >
-      <div className="key-box-letter">
+      <div className={CharBoxStyles.character}>
         <span>{char}</span>
       </div>
     </div>

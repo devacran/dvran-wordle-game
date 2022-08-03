@@ -1,7 +1,5 @@
 import React, { createContext, FC, useEffect, useRef, useState } from "react";
 import axios from "axios";
-import type { NextPage } from "next";
-import KeyBox from "./components/CharBox";
 import Keyboard, { KeyboardReactInterface } from "react-simple-keyboard";
 import "react-simple-keyboard/build/css/index.css";
 import WordsGrid from "./components/WordsGrid/WordGrid";
@@ -12,7 +10,7 @@ import {
   IGameProps,
   IWordValidationResponse,
 } from "./Game.types";
-
+import GameSyles from "./Game.module.css";
 const defaultGameState = {};
 const GameContext = createContext(defaultGameState);
 const gameLevel = [2, 6];
@@ -157,28 +155,34 @@ const Game: FC<IGameProps> = () => {
 
   return (
     <GameContext.Provider value={{}}>
-      <main>
-        <header>
-          <h1>Wordle</h1>
-        </header>
-        <section>
-          <div>
-            <WordsGrid words={gameWords} />
-          </div>
-        </section>
-        <section>
-          <div>
-            <Keyboard
-              keyboardRef={(r) => {
-                ref.current = r;
-              }}
-              onKeyPress={handleKeyClick}
-            />
-          </div>
-        </section>
-        <button type="button" onClick={() => {}}>
-          Submit {puntuation}
-        </button>
+      <main className="container">
+        <div className={GameSyles.game}>
+          <header>
+            <h1>Wordle</h1>
+          </header>
+          <section className="mt-5 mb-5">
+            <div>
+              <WordsGrid words={gameWords} />
+            </div>
+          </section>
+          <section className="mt-5 mb-5">
+            <div>
+              <Keyboard
+                keyboardRef={(r) => {
+                  ref.current = r;
+                }}
+                onKeyPress={handleKeyClick}
+                layout={{
+                  default: [
+                    "q w e r t y u i o p",
+                    "a s d f g h j k l",
+                    "{enter} z x c v b n m {bksp}",
+                  ],
+                }}
+              />
+            </div>
+          </section>
+        </div>
       </main>
     </GameContext.Provider>
   );
