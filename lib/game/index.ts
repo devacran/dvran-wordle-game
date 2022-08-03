@@ -23,3 +23,9 @@ export function validateWord(_inputWord: string, _baseWord: string) {
   }
   return result;
 }
+export function getWord() {
+  //Load words
+  const words = ["Pintar", "Obispo", "Copete", "Omitir", "Arruga"];
+  const randomWord = words[Math.floor(Math.random() * words.length)];
+  return randomWord;
+}

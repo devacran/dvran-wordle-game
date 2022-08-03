@@ -5,20 +5,16 @@ import "react-simple-keyboard/build/css/index.css";
 import WordsGrid from "./components/WordsGrid/WordGrid";
 import { IGameWord } from "./components/WordsGrid/WordsGrid.types";
 import { ICharBox } from "./components/CharBox/CharBox.types";
-import {
-  IGameCharState,
-  IGameProps,
-  IWordValidationResponse,
-} from "./Game.types";
+import { IGameCharState, IWordValidationResponse } from "./Game.types";
 import GameSyles from "./Game.module.css";
-const defaultGameState = {};
-const GameContext = createContext(defaultGameState);
-const gameLevel = [2, 6];
+import GameStatistics from "./components/GameStatistics";
+
+const gameLevel = [4, 6];
 const gridY = gameLevel[0];
 const gridX = gameLevel[1];
-const baseWord = "Miguel";
-const Game: FC<IGameProps> = () => {
-  const ref = useRef<KeyboardReactInterface | null>(null);
+
+const Game: FC = () => {
+  const [baseWord, setBaseWord] = useState("");
   const [puntuation, setPuntuation] = useState(0);
   const [gameWords, setGameWords] = useState<IGameWord[]>([]);
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
@@ -27,7 +23,9 @@ const Game: FC<IGameProps> = () => {
   const [currentWordState, setCurrentWordState] = useState<IGameCharState[]>(
     []
   );
+  const [isOpenWinModal, setIsOpenWinModal] = useState(false);
   const currentWord = gameWords[currentWordIndex];
+  const ref = useRef<KeyboardReactInterface | null>(null);
 
   const finishGame = () => {
     setIsGameOver(true);
@@ -81,6 +79,10 @@ const Game: FC<IGameProps> = () => {
     }
   };
 
+  const openWinModal = () => {
+    setIsGameOver(true);
+    setIsOpenWinModal(true);
+  };
   const submitWord = async () => {
     const wordToSubmit = currentWord.value.map((char) => char.value).join("");
     try {
@@ -99,6 +101,7 @@ const Game: FC<IGameProps> = () => {
       updateGameWords(wordValidation);
       if (isCorrectWord) {
         setPuntuation((puntuation) => puntuation + 1);
+        openWinModal();
       }
       if (currentWordIndex === gameWords.length - 1) {
         finishGame();
@@ -134,9 +137,18 @@ const Game: FC<IGameProps> = () => {
     }
   };
 
-  useEffect(() => {});
-  useEffect(() => {
-    sessionStorage.setItem("baseWord", baseWord);
+  const getBaseWord = async () => {
+    try {
+      const { data } = await axios.get<string>("api/game/get-word");
+      return data.data;
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const initGame = async () => {
+    const baseWord = await getBaseWord();
+    setBaseWord(baseWord);
     const startingWordsFields: IGameWord[] = [];
     for (let i = 0; i < gameLevel[0]; i++) {
       const word: IGameWord = { value: [], baseValue: baseWord };
@@ -151,40 +163,46 @@ const Game: FC<IGameProps> = () => {
         .split(" ")
         .slice(0, -1) as IGameCharState[]
     );
+    getBaseWord();
+  };
+
+  useEffect(() => {
+    initGame();
   }, []);
 
   return (
-    <GameContext.Provider value={{}}>
-      <main className="container">
-        <div className={GameSyles.game}>
-          <header>
-            <h1>Wordle</h1>
-          </header>
-          <section className="mt-5 mb-5">
-            <div>
-              <WordsGrid words={gameWords} />
-            </div>
-          </section>
-          <section className="mt-5 mb-5">
-            <div>
-              <Keyboard
-                keyboardRef={(r) => {
-                  ref.current = r;
-                }}
-                onKeyPress={handleKeyClick}
-                layout={{
-                  default: [
-                    "q w e r t y u i o p",
-                    "a s d f g h j k l",
-                    "{enter} z x c v b n m {bksp}",
-                  ],
-                }}
-              />
-            </div>
-          </section>
-        </div>
-      </main>
-    </GameContext.Provider>
+    <main className="container">
+      <div className={GameSyles.game}>
+        <header>
+          <h1>Wordle</h1>
+        </header>
+        <section className="mt-5 mb-5">
+          <div>
+            <WordsGrid words={gameWords} />
+          </div>
+        </section>
+        <section className="mt-5 mb-5">
+          <div>
+            <Keyboard
+              keyboardRef={(r) => {
+                ref.current = r;
+              }}
+              onKeyPress={handleKeyClick}
+              layout={{
+                default: [
+                  "q w e r t y u i o p",
+                  "a s d f g h j k l",
+                  "{enter} z x c v b n m {bksp}",
+                ],
+              }}
+            />
+          </div>
+        </section>
+      </div>
+      {isOpenWinModal && (
+        <GameStatistics statics={{ puntuation: puntuation }} />
+      )}
+    </main>
   );
 };
 

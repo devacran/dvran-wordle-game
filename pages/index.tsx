@@ -1,19 +1,9 @@
 import type { NextPage } from "next";
 import Link from "next/link";
-import { useRouter } from "next/router";
-import { useEffect } from "react";
 import CharBox from "../components/Game/components/CharBox";
-const Home: NextPage = (props) => {
-  const { replace } = useRouter();
-  // useEffect(() => {
-  //   if (sessionStorage.getItem("baseWord")) {
-  //     replace("/game");
-  //   } else {
-  //   }
-  // }, []);
-
+const Home: NextPage = () => {
   return (
-    <main className="container m-5 border rounded ">
+    <main className="container m-5 border rounded">
       <div className="p-5">
         <h1 className="text-center">Como Jugar</h1>
         <p>Adivina la palabra oculta en 5 intentos.</p>
@@ -23,7 +13,7 @@ const Home: NextPage = (props) => {
           tan cerca estas de acrtar la palabra.
         </p>
         <h6>Ejemplos</h6>
-        <div className="d-flex">
+        <div className="d-flex  w-50">
           <div className="col">
             <CharBox state="idle" char="G" />
           </div>
@@ -45,7 +35,7 @@ const Home: NextPage = (props) => {
           La letra <strong>G</strong>está en la palabra y en la posición
           correcta.
         </p>
-        <div className="d-flex">
+        <div className="d-flex  w-50">
           <div className="col">
             <CharBox state="idle" char="V" />
           </div>
@@ -66,7 +56,7 @@ const Home: NextPage = (props) => {
           La letra <strong>C</strong>está en la palabra y pero en la posición
           incorrecta.
         </p>
-        <div className="d-flex">
+        <div className="d-flex w-50">
           <div className="col">
             <CharBox state="idle" char="C" />
           </div>

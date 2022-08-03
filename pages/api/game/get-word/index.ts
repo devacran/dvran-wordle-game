@@ -1,6 +1,6 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from "next";
-import { validateWord } from "../../../../lib/game";
+import { getWord, validateWord } from "../../../../lib/game";
 
 type Data =
   | {
@@ -15,7 +15,8 @@ export default async function handler(
   res: NextApiResponse<Data>
 ) {
   if (req.method === "GET") {
-    res.status(200).json({ data: "Hola" });
+    const word = getWord();
+    res.status(200).json({ data: word });
   } else {
     res.status(400).json({ error: "Method not allowed" });
   }
