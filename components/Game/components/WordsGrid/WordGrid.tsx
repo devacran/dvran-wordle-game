@@ -14,9 +14,8 @@ const Word: FC<IWordProps> = ({ word }) => {
     </div>
   );
 };
-const WordsGrid: FC<IWordsGridProps> & { Word: FC<IWordProps> } = ({
-  words,
-}) => {
+
+const WordsGrid: FC<IWordsGridProps> = ({ words }) => {
   return (
     <div className={WordsGridStyles.container}>
       {words.map((word, rowIndex) => (
@@ -26,5 +25,4 @@ const WordsGrid: FC<IWordsGridProps> & { Word: FC<IWordProps> } = ({
   );
 };
 
-WordsGrid.Word = Word;
 export default WordsGrid;

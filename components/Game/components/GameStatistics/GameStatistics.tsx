@@ -1,7 +1,7 @@
 import React from "react";
+import { IGameStaticsProps } from "./GameStatistics.types";
 
-const GameStatistics: React.FC = () => {
-  console.log("hey");
+const GameStatistics: React.FC<IGameStaticsProps> = ({ data }) => {
   return (
     <div className="modal" tabIndex={-1} role="dialog">
       <div className="modal-dialog" role="document">
