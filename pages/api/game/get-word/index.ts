@@ -1,6 +1,6 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from "next";
-import { getWord, validateWord } from "../../../../lib/game";
+import wordGameLib from "../../../../lib/game";
 
 type Data =
   | {
@@ -15,7 +15,9 @@ export default async function handler(
   res: NextApiResponse<Data>
 ) {
   if (req.method === "GET") {
-    const word = getWord();
+    const level: number = parseInt(req.query.level as string);
+
+    const word = (await wordGameLib).getWord(level);
     res.status(200).json({ data: word });
   } else {
     res.status(400).json({ error: "Method not allowed" });

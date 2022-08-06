@@ -22,8 +22,8 @@ import GameStatistics from "./components/GameStatistics";
 import useGameState, { gameStateReducer, initialGameState } from "./Game.state";
 
 const gameLevel = [4, 6];
-const gridY = gameLevel[0];
-const gridX = gameLevel[1];
+const levelAttempts = gameLevel[0];
+const wordLevelLength = gameLevel[1];
 
 const Game: FC = () => {
   const { action: actions, state } = useGameState();
@@ -128,29 +128,31 @@ const Game: FC = () => {
       return;
     }
 
-    const wordStringToSubmit = currentWordRef.value
-      .map((char) => char.value)
-      .join("");
-
-    if (btnValue === "{enter}") {
-      submitWord(wordStringToSubmit);
-      return;
-    }
-
-    setCharValue(currentCharIndex, btnValue);
-
-    if (currentCharIndex === gridX - 1) {
-      let stringArr = wordStringToSubmit.split("");
-      stringArr[currentCharIndex] = btnValue;
-      return await submitWord(stringArr.join(""));
-    } else {
+    console.log(currentCharIndex, wordLevelLength);
+    if (currentCharIndex < wordLevelLength) {
+      setCharValue(currentCharIndex, btnValue);
       switchToNextChar();
+    } else {
+      if (btnValue === "{enter}") {
+        const wordStringToSubmit = currentWordRef.value
+          .map((char) => char.value)
+          .join("");
+        let stringArr = wordStringToSubmit.split("");
+        stringArr[currentCharIndex] = btnValue;
+        submitWord(wordStringToSubmit);
+        return;
+      } else {
+        console.log("debio entrar aqui");
+        return;
+      }
     }
   };
 
   const getBaseWord = async () => {
     try {
-      const { data } = await axios.get("api/game/get-word");
+      const { data } = await axios.get("api/game/get-word", {
+        params: { level: wordLevelLength },
+      });
       return data.data;
     } catch (error) {
       console.error(error);
@@ -176,7 +178,7 @@ const Game: FC = () => {
         .slice(0, -1) as IGameCharState[]
     );
   };
-
+  console.log(state);
   useEffect(() => {
     initGame();
   }, []);

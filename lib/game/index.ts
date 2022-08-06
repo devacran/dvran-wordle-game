@@ -1,31 +1,57 @@
-export function validateWord(_inputWord: string, _baseWord: string) {
-  const inputWord = _inputWord.toLowerCase();
-  const baseWord = _baseWord.toLowerCase();
-  const result: number[] = [];
-  if (inputWord.length > baseWord.length) {
-    throw new Error("too large");
-  }
-  if (inputWord.length < baseWord.length) {
-    throw new Error("too short");
+import axios from "axios";
+
+async function WordGameLib() {
+  let words = ["Pintar", "Obispo", "Copete", "Omitir", "Arruga"];
+  try {
+    const { data } = await axios.get(
+      "https://raw.githubusercontent.com/dwyl/english-words/master/words.txt"
+    );
+    words = data.split("\n");
+  } catch (error) {
+    console.log(error);
   }
 
-  for (let i = 0; i < inputWord.length; i++) {
-    const currentChar = inputWord[i];
-    if (baseWord.includes(currentChar)) {
-      if (baseWord[i] === inputWord[i]) {
-        result.push(0);
-      } else {
-        result.push(1);
-      }
-    } else {
-      result.push(-1);
-    }
+  function getWord(gameLevel?: number) {
+    console.log("gameLevel", gameLevel);
+    const wordsByLevel = gameLevel
+      ? words.filter((word) => word.length === gameLevel)
+      : words;
+    const randomWord =
+      wordsByLevel[Math.floor(Math.random() * wordsByLevel.length)];
+    return randomWord;
   }
-  return result;
+
+  function validateWord(_inputWord: string, _baseWord: string) {
+    const inputWord = _inputWord.toLowerCase();
+    const baseWord = _baseWord.toLowerCase();
+    const result: number[] = [];
+    if (inputWord.length > baseWord.length) {
+      throw new Error("too large");
+    }
+    if (inputWord.length < baseWord.length) {
+      throw new Error("too short");
+    }
+
+    for (let i = 0; i < inputWord.length; i++) {
+      const currentChar = inputWord[i];
+      if (baseWord.includes(currentChar)) {
+        if (baseWord[i] === inputWord[i]) {
+          result.push(0);
+        } else {
+          result.push(1);
+        }
+      } else {
+        result.push(-1);
+      }
+    }
+    return result;
+  }
+
+  return {
+    getWord,
+    validateWord,
+  };
 }
-export function getWord() {
-  //Load words
-  const words = ["Pintar", "Obispo", "Copete", "Omitir", "Arruga"];
-  const randomWord = words[Math.floor(Math.random() * words.length)];
-  return randomWord;
-}
+
+const wordGameLib = WordGameLib();
+export default wordGameLib;
