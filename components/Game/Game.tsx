@@ -18,15 +18,17 @@ import {
   IWordValidationResponse,
 } from "./Game.types";
 import GameSyles from "./Game.module.css";
-import GameStatistics from "./components/GameStatistics";
-import useGameState, { gameStateReducer, initialGameState } from "./Game.state";
+import { useGameState, useGameMutations } from "./Game.state";
+import GameStatistics from "../Stats";
 
 const gameLevel: [number, number] = [4, 6];
 const levelAttempts = gameLevel[0];
 const wordLevelLength = gameLevel[1];
 
 const Game: FC = () => {
-  const { action: actions, state } = useGameState();
+  const state = useGameState();
+  const actions = useGameMutations();
+
   const {
     baseWord,
     score,
@@ -38,11 +40,8 @@ const Game: FC = () => {
   } = state;
 
   const {
-    setBaseWord,
     setScore,
-    setWords,
     setWordValidation,
-    setCurrentWordIndex,
     setCurrentCharIndex,
     setIsGameOver,
     setCharValue,

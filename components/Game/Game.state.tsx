@@ -1,15 +1,17 @@
-import { useReducer } from "react";
+import { createContext, Dispatch, FC, useContext, useReducer } from "react";
 import { ICharBox } from "./components/CharBox/CharBox.types";
 import { IGameWord } from "./components/WordsGrid/WordsGrid.types";
 import {
   IGameActions,
   IGameCharState,
   IGameState,
+  IGameProviderProps,
   IGameStateAction as IGameStateActionType,
+  IGameStateAction,
 } from "./Game.types";
 
 const initialWords: IGameWord[] = [];
-export const initialGameState: IGameState = {
+export const intitialState: IGameState = {
   baseWord: "",
   score: 0,
   words: initialWords,
@@ -20,10 +22,18 @@ export const initialGameState: IGameState = {
   gameLevel: [4, 4],
 };
 
-export const gameStateReducer = (
-  state: IGameState,
-  action: IGameStateActionType
-): IGameState => {
+const GameContext = createContext(intitialState);
+const GameDispatchContext = createContext(
+  (() => {}) as Dispatch<IGameStateAction>
+);
+
+export const useGameState = (): IGameState => {
+  const state = useContext(GameContext);
+
+  return state;
+};
+
+function reducer(state: IGameState, action: IGameStateActionType): IGameState {
   switch (action.type) {
     case "SET_BASE_WORD":
       return {
@@ -121,13 +131,10 @@ export const gameStateReducer = (
     default:
       return state;
   }
-};
+}
 
-export default function useGameState(): {
-  state: IGameState;
-  action: IGameActions;
-} {
-  const [gameState, dispatch] = useReducer(gameStateReducer, initialGameState);
+export function useGameMutations() {
+  const dispatch = useContext(GameDispatchContext);
   const setSwitchToNewWord = () => {
     dispatch({
       type: "SET_SWITCH_TO_NEW_WORD",
@@ -204,20 +211,30 @@ export default function useGameState(): {
   };
 
   return {
-    state: gameState,
-    action: {
-      setSwitchToNewWord,
-      setCharValue,
-      setWordValidation,
-      setBaseWord,
-      setScore,
-      setWords,
-      setIsGameOver,
-      setCurrentWordIndex,
-      setCurrentCharIndex,
-      setCurrentWordRef,
-      setGameLevel,
-      setInitGame,
-    },
+    setSwitchToNewWord,
+    setCharValue,
+    setWordValidation,
+    setBaseWord,
+    setScore,
+    setWords,
+    setIsGameOver,
+    setCurrentWordIndex,
+    setCurrentCharIndex,
+    setCurrentWordRef,
+    setGameLevel,
+    setInitGame,
   };
 }
+
+const GameProvider: FC<IGameProviderProps> = ({ children }) => {
+  const [state, dispatch] = useReducer(reducer, intitialState);
+  return (
+    <GameContext.Provider value={state}>
+      <GameDispatchContext.Provider value={dispatch}>
+        {children}
+      </GameDispatchContext.Provider>
+    </GameContext.Provider>
+  );
+};
+
+export default GameProvider;

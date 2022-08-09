@@ -43,3 +43,7 @@ export type IGameActions = {
   setWordValidation: (wordValidation: IGameCharState[]) => void;
   setInitGame: (gameState: Omit<IGameState, "currentWordRef">) => void;
 };
+
+export type IGameProviderProps = {
+  children: React.ReactNode;
+};
