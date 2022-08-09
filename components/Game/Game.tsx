@@ -55,6 +55,9 @@ const Game: FC = () => {
   const [canSaveInLocalStorage, setCanSaveInLocalStorage] = useState(false);
   const finishGame = () => {
     setIsGameOver(true);
+    const fiveMinutesLater = new Date(new Date().getTime() + 5 * 60 * 1000);
+    document.cookie = `game-over=true; expires=${fiveMinutesLater.toUTCString()}`;
+    localStorage.removeItem("game-state");
   };
   const switchToNextWord = () => {
     setSwitchToNewWord();
@@ -98,7 +101,7 @@ const Game: FC = () => {
       words,
       currentWordIndex: currentWordIndex,
     };
-    localStorage.setItem("gameState", JSON.stringify(gameState));
+    localStorage.setItem("game-state", JSON.stringify(gameState));
   };
 
   const submitWord = async (wordToSubmit: string) => {
@@ -228,7 +231,12 @@ const Game: FC = () => {
   }, [canSaveInLocalStorage]);
 
   useEffect(() => {
-    initGame();
+    const gameOver = document.cookie.includes("game-over");
+    if (gameOver) {
+      setIsGameOver(true);
+    } else {
+      initGame();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -238,6 +246,7 @@ const Game: FC = () => {
         <header>
           <h1>Wordle</h1>
         </header>
+        {isGameOver && "GAME OVER Try again later"}
         <section className="mt-5 mb-5">
           <div>
             <WordsGrid words={words} />
