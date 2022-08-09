@@ -14,21 +14,20 @@ export type IGameState = {
   score: number;
   words: IGameWord[];
 };
-export type IGameStateAction = {
-  type:
-    | "SET_SWITCH_TO_NEW_WORD"
-    | "SET_CHAR_VALUE"
-    | "SET_WORD_VALIDATION"
-    | "SET_BASE_WORD"
-    | "SET_SCORE"
-    | "SET_WORDS"
-    | "SET_IS_GAME_OVER"
-    | "SET_CURRENT_WORD_INDEX"
-    | "SET_CURRENT_CHAR_INDEX"
-    | "SET_CURRENT_WORD_REF"
-    | "SET_GAME_LEVEL";
-  payload: any;
-};
+
+export type IGameStateAction =
+  | { type: "SET_SWITCH_TO_NEW_WORD" }
+  | { type: "SET_CHAR_VALUE"; payload: { charValue: string; charIdx: number } }
+  | { type: "SET_WORD_VALIDATION"; payload: IGameCharState[] }
+  | { type: "SET_BASE_WORD"; payload: string }
+  | { type: "SET_SCORE"; payload: number }
+  | { type: "SET_WORDS"; payload: IGameWord[] }
+  | { type: "SET_IS_GAME_OVER"; payload: boolean }
+  | { type: "SET_CURRENT_WORD_INDEX"; payload: number }
+  | { type: "SET_CURRENT_CHAR_INDEX"; payload: number }
+  | { type: "SET_CURRENT_WORD_REF"; payload: IGameWord }
+  | { type: "SET_GAME_LEVEL"; payload: [number, number] }
+  | { type: "SET_INIT_GAME"; payload: Omit<IGameState, "currentWordRef"> };
 
 export type IGameActions = {
   setBaseWord: (baseWord: string) => void;
@@ -38,8 +37,9 @@ export type IGameActions = {
   setCurrentWordIndex: (currentWordIndex: number) => void;
   setCurrentCharIndex: (currentCharIndex: number) => void;
   setCurrentWordRef: (currentWordRef: IGameWord) => void;
-  setGameLevel: (gameLevel: number[]) => void;
+  setGameLevel: (gameLevel: [number, number]) => void;
   setCharValue: (charIdx: number, char: string) => void;
   setSwitchToNewWord: () => void;
   setWordValidation: (wordValidation: IGameCharState[]) => void;
+  setInitGame: (gameState: Omit<IGameState, "currentWordRef">) => void;
 };

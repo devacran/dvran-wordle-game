@@ -21,7 +21,7 @@ import GameSyles from "./Game.module.css";
 import GameStatistics from "./components/GameStatistics";
 import useGameState, { gameStateReducer, initialGameState } from "./Game.state";
 
-const gameLevel = [4, 6];
+const gameLevel: [number, number] = [4, 6];
 const levelAttempts = gameLevel[0];
 const wordLevelLength = gameLevel[1];
 
@@ -47,11 +47,12 @@ const Game: FC = () => {
     setIsGameOver,
     setCharValue,
     setSwitchToNewWord,
+    setInitGame,
   } = actions;
 
   const [isOpenWinModal, setIsOpenWinModal] = useState(false);
   const ref = useRef<KeyboardReactInterface | null>(null);
-
+  const [canSaveInLocalStorage, setCanSaveInLocalStorage] = useState(false);
   const finishGame = () => {
     setIsGameOver(true);
   };
@@ -89,6 +90,17 @@ const Game: FC = () => {
     setIsGameOver(true);
     setIsOpenWinModal(true);
   };
+
+  const saveGameStateInLocalStorage = () => {
+    const gameState = {
+      baseWord,
+      score,
+      words,
+      currentWordIndex: currentWordIndex,
+    };
+    localStorage.setItem("gameState", JSON.stringify(gameState));
+  };
+
   const submitWord = async (wordToSubmit: string) => {
     try {
       const { data } = await axios.post<IWordValidationResponse>(
@@ -102,6 +114,7 @@ const Game: FC = () => {
       const isCorrectWord = wordValidation.every(
         (validation) => validation === "valid"
       );
+
       setWordValidation(wordValidation);
 
       if (isCorrectWord) {
@@ -113,6 +126,7 @@ const Game: FC = () => {
       } else {
         switchToNextWord();
       }
+      setCanSaveInLocalStorage(true);
     } catch (error) {
       console.error(error);
     }
@@ -128,7 +142,6 @@ const Game: FC = () => {
       return;
     }
 
-    console.log(currentCharIndex, wordLevelLength);
     if (currentCharIndex < wordLevelLength) {
       setCharValue(currentCharIndex, btnValue);
       switchToNextChar();
@@ -142,13 +155,12 @@ const Game: FC = () => {
         submitWord(wordStringToSubmit);
         return;
       } else {
-        console.log("debio entrar aqui");
         return;
       }
     }
   };
 
-  const getBaseWord = async () => {
+  const getBaseWord = async (): Promise<string | undefined> => {
     try {
       const { data } = await axios.get("api/game/get-word", {
         params: { level: wordLevelLength },
@@ -159,29 +171,67 @@ const Game: FC = () => {
     }
   };
 
-  const initGame = async () => {
-    const baseWord = await getBaseWord();
-    setBaseWord(baseWord);
-    const startingWordsFields: IGameWord[] = [];
-    for (let i = 0; i < gameLevel[0]; i++) {
-      const word: IGameWord = { value: [], baseValue: baseWord };
-      for (let j = 0; j < gameLevel[1]; j++) {
-        word.value.push({ value: " ", state: "idle" });
-      }
-      startingWordsFields.push(word);
+  const loadGameStateFromStorage = () => {
+    const gameState = localStorage.getItem("gameState");
+    if (gameState) {
+      const parsedGameState = JSON.parse(gameState);
+      setInitGame({
+        baseWord: parsedGameState.baseWord,
+        score: parsedGameState.score,
+        words: parsedGameState.words,
+        currentWordIndex: parsedGameState.currentWordIndex,
+        gameLevel: parsedGameState.gameLevel,
+        currentCharIndex: 0,
+        isGameOver: false,
+      });
+
+      return;
     }
-    setWords(startingWordsFields);
-    setWordValidation(
-      baseWord
-        .replaceAll(/./g, "idle ")
-        .split(" ")
-        .slice(0, -1) as IGameCharState[]
-    );
+    throw new Error("No game state found");
   };
-  console.log(state);
+
+  const initGame = async () => {
+    try {
+      loadGameStateFromStorage();
+    } catch (error) {
+      const baseWord = await getBaseWord();
+      if (!baseWord) {
+        console.error("error getting base word");
+        return;
+      }
+      const startingWordsFields: IGameWord[] = [];
+      for (let i = 0; i < gameLevel[0]; i++) {
+        const word: IGameWord = { value: [], baseValue: baseWord };
+        for (let j = 0; j < gameLevel[1]; j++) {
+          word.value.push({ value: " ", state: "idle" });
+        }
+        startingWordsFields.push(word);
+      }
+      setInitGame({
+        baseWord,
+        score: 0,
+        words: startingWordsFields,
+        currentWordIndex: 0,
+        gameLevel: gameLevel,
+        currentCharIndex: 0,
+        isGameOver: false,
+      });
+    }
+  };
+
+  useEffect(() => {
+    if (canSaveInLocalStorage) {
+      saveGameStateInLocalStorage();
+      setCanSaveInLocalStorage(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [canSaveInLocalStorage]);
+
   useEffect(() => {
     initGame();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
   return (
     <main className="container">
       <div className={GameSyles.game}>

@@ -23,7 +23,7 @@ export const initialGameState: IGameState = {
 export const gameStateReducer = (
   state: IGameState,
   action: IGameStateActionType
-) => {
+): IGameState => {
   switch (action.type) {
     case "SET_BASE_WORD":
       return {
@@ -112,6 +112,12 @@ export const gameStateReducer = (
         words: newWords,
       };
     }
+    case "SET_INIT_GAME": {
+      return {
+        ...action.payload,
+        currentWordRef: action.payload.words[action.payload.currentWordIndex],
+      };
+    }
     default:
       return state;
   }
@@ -125,7 +131,6 @@ export default function useGameState(): {
   const setSwitchToNewWord = () => {
     dispatch({
       type: "SET_SWITCH_TO_NEW_WORD",
-      payload: null,
     });
   };
   const setCharValue = (charIdx: number, char: string) => {
@@ -179,7 +184,7 @@ export default function useGameState(): {
       payload: currentWordRef,
     });
   };
-  const setGameLevel = (gameLevel: number[]) => {
+  const setGameLevel = (gameLevel: [number, number]) => {
     dispatch({
       type: "SET_GAME_LEVEL",
       payload: gameLevel,
@@ -191,28 +196,28 @@ export default function useGameState(): {
       payload: wordValidation,
     });
   };
+  const setInitGame = (game: Omit<IGameState, "currentWordRef">) => {
+    dispatch({
+      type: "SET_INIT_GAME",
+      payload: game,
+    });
+  };
 
   return {
     state: gameState,
     action: {
       setSwitchToNewWord,
-      setCharValue: (charIdx: number, charValue: string) => {
-        setCharValue(charIdx, charValue);
-      },
-      setWordValidation: (wordValidation: IGameCharState[]) => {
-        setWordValidation(wordValidation);
-      },
-      setBaseWord: (baseWord: string) => setBaseWord(baseWord),
-      setScore: (score: number) => setScore(score),
-      setWords: (words: IGameWord[]) => setWords(words),
-      setIsGameOver: (gameOver: boolean) => setIsGameOver(gameOver),
-      setCurrentWordIndex: (currentWordIndex: number) =>
-        setCurrentWordIndex(currentWordIndex),
-      setCurrentCharIndex: (currentCharIndex: number) =>
-        setCurrentCharIndex(currentCharIndex),
-      setCurrentWordRef: (currentWordRef: IGameWord) =>
-        setCurrentWordRef(currentWordRef),
-      setGameLevel: (gameLevel: number[]) => setGameLevel(gameLevel),
+      setCharValue,
+      setWordValidation,
+      setBaseWord,
+      setScore,
+      setWords,
+      setIsGameOver,
+      setCurrentWordIndex,
+      setCurrentCharIndex,
+      setCurrentWordRef,
+      setGameLevel,
+      setInitGame,
     },
   };
 }
