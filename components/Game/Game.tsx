@@ -136,6 +136,7 @@ const Game: FC = () => {
   };
 
   const handleKeyClick = async (btnValue: string) => {
+    const wordIsNotComplete = currentCharIndex < wordLevelLength;
     if (isGameOver) {
       return;
     }
@@ -145,7 +146,10 @@ const Game: FC = () => {
       return;
     }
 
-    if (currentCharIndex < wordLevelLength) {
+    if (wordIsNotComplete) {
+      if (btnValue === "{enter}") {
+        return;
+      }
       setCharValue(currentCharIndex, btnValue);
       switchToNextChar();
     } else {
@@ -155,8 +159,7 @@ const Game: FC = () => {
           .join("");
         let stringArr = wordStringToSubmit.split("");
         stringArr[currentCharIndex] = btnValue;
-        submitWord(wordStringToSubmit);
-        return;
+        return submitWord(wordStringToSubmit);
       } else {
         return;
       }

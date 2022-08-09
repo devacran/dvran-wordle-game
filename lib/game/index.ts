@@ -1,37 +1,50 @@
 import axios from "axios";
 
 async function WordGameLib() {
-  let words = ["Pintar", "Obispo", "Copete", "Omitir", "Arruga"];
+  const wordKeySymbol = Symbol.for("words");
+  const globalVar: { [wordKeySymbol]: string[] } = global as any;
+
   try {
-    const { data } = await axios.get(
-      "https://raw.githubusercontent.com/dwyl/english-words/master/words.txt"
-    );
-    words = data.split("\n");
+    if (!globalVar[wordKeySymbol]) {
+      const { data } = await axios.get(
+        "https://raw.githubusercontent.com/dwyl/english-words/master/words.txt"
+      );
+      globalVar[wordKeySymbol] = data.split("\n");
+    }
   } catch (error) {
+    globalVar[wordKeySymbol] = [
+      "Pintar",
+      "Obispo",
+      "Copete",
+      "Omitir",
+      "Arruga",
+    ];
     console.log(error);
   }
 
   function getWord(gameLevel?: number) {
-    console.log("gameLevel", gameLevel);
     const wordsByLevel = gameLevel
-      ? words.filter((word) => word.length === gameLevel)
-      : words;
+      ? globalVar[wordKeySymbol].filter((word) => word.length === gameLevel)
+      : globalVar[wordKeySymbol];
     const randomWord =
       wordsByLevel[Math.floor(Math.random() * wordsByLevel.length)];
     return randomWord;
   }
 
   function validateWord(_inputWord: string, _baseWord: string) {
+    const result: number[] = [];
     const inputWord = _inputWord.toLowerCase();
     const baseWord = _baseWord.toLowerCase();
-    const result: number[] = [];
+
     if (inputWord.length > baseWord.length) {
-      throw new Error("too large");
+      throw new Error("Word too large");
     }
     if (inputWord.length < baseWord.length) {
-      throw new Error("too short");
+      throw new Error("Word too short");
     }
-
+    if (!globalVar[wordKeySymbol].includes(_inputWord)) {
+      throw new Error("Word not found");
+    }
     for (let i = 0; i < inputWord.length; i++) {
       const currentChar = inputWord[i];
       if (baseWord.includes(currentChar)) {
