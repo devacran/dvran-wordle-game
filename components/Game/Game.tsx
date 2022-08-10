@@ -1,17 +1,9 @@
-import React, {
-  createContext,
-  FC,
-  useEffect,
-  useReducer,
-  useRef,
-  useState,
-} from "react";
-import axios from "axios";
+import React, { FC, useEffect, useReducer, useRef, useState } from "react";
+import axios, { AxiosError } from "axios";
 import Keyboard, { KeyboardReactInterface } from "react-simple-keyboard";
 import "react-simple-keyboard/build/css/index.css";
 import WordsGrid from "./components/WordsGrid/WordGrid";
 import { IGameWord } from "./components/WordsGrid/WordsGrid.types";
-import { ICharBox } from "./components/CharBox/CharBox.types";
 import {
   IGameCharState,
   IGameState,
@@ -19,9 +11,8 @@ import {
 } from "./Game.types";
 import GameSyles from "./Game.module.css";
 import { useGameState, useGameMutations } from "./Game.state";
-import GameStatistics from "../Stats";
 
-const gameLevel: [number, number] = [4, 6];
+const gameLevel: [number, number] = [2, 5];
 const levelAttempts = gameLevel[0];
 const wordLevelLength = gameLevel[1];
 
@@ -88,9 +79,16 @@ const Game: FC = () => {
     }
   };
 
-  const openWinModal = () => {
-    setIsGameOver(true);
+  const winGame = () => {
+    setScore({ ...score, wins: score.wins + 1 });
+    finishGame();
     setIsOpenWinModal(true);
+    alert("You win!, your score is: " + String(score.wins + 1));
+  };
+  const looseGame = () => {
+    setScore({ ...score, losses: score.losses + 1 });
+    finishGame();
+    alert("You loose!");
   };
 
   const saveGameStateInLocalStorage = () => {
@@ -98,7 +96,7 @@ const Game: FC = () => {
       baseWord,
       score,
       words,
-      currentWordIndex: currentWordIndex,
+      currentWordIndex,
     };
     localStorage.setItem("game-state", JSON.stringify(gameState));
   };
@@ -120,17 +118,20 @@ const Game: FC = () => {
       setWordValidation(wordValidation);
 
       if (isCorrectWord) {
-        setScore(score + 1);
-        openWinModal();
+        return winGame();
       }
+
       if (currentWordIndex === words.length - 1) {
-        finishGame();
+        return looseGame();
       } else {
         switchToNextWord();
       }
       setCanSaveInLocalStorage(true);
     } catch (error) {
-      console.error(error);
+      const { response } = error as AxiosError<{ error: string }>;
+      if (response?.data.error === "Word not found") {
+        alert("Palabra no encontrada");
+      }
     }
   };
 
@@ -177,7 +178,7 @@ const Game: FC = () => {
   };
 
   const loadGameStateFromStorage = () => {
-    const gameState = localStorage.getItem("gameState");
+    const gameState = localStorage.getItem("game-state");
     if (gameState) {
       const parsedGameState = JSON.parse(gameState);
       setInitGame({
@@ -214,7 +215,7 @@ const Game: FC = () => {
       }
       setInitGame({
         baseWord,
-        score: 0,
+        score: { wins: 0, losses: 0 },
         words: startingWordsFields,
         currentWordIndex: 0,
         gameLevel: gameLevel,
@@ -248,7 +249,6 @@ const Game: FC = () => {
         <header>
           <h1>Wordle</h1>
         </header>
-        {isGameOver && "GAME OVER Try again later"}
         <section className="mt-5 mb-5">
           <div>
             <WordsGrid words={words} />
@@ -272,7 +272,6 @@ const Game: FC = () => {
           </div>
         </section>
       </div>
-      {isOpenWinModal && <GameStatistics data={{ puntuation: score }} />}
     </main>
   );
 };

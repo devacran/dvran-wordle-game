@@ -1,5 +1,5 @@
 import { IGameWord } from "./components/WordsGrid/WordsGrid.types";
-
+export type IGameScore = { wins: number; losses: number };
 export type IGameCharState = "idle" | "valid" | "invalid" | "disabled";
 export type IWordValidationResponse = {
   result: ("-1" | "0" | "1")[];
@@ -11,7 +11,7 @@ export type IGameState = {
   currentWordIndex: number;
   gameLevel: [number, number];
   isGameOver: boolean;
-  score: number;
+  score: IGameScore;
   words: IGameWord[];
 };
 
@@ -20,7 +20,7 @@ export type IGameStateAction =
   | { type: "SET_CHAR_VALUE"; payload: { charValue: string; charIdx: number } }
   | { type: "SET_WORD_VALIDATION"; payload: IGameCharState[] }
   | { type: "SET_BASE_WORD"; payload: string }
-  | { type: "SET_SCORE"; payload: number }
+  | { type: "SET_SCORE"; payload: IGameScore }
   | { type: "SET_WORDS"; payload: IGameWord[] }
   | { type: "SET_IS_GAME_OVER"; payload: boolean }
   | { type: "SET_CURRENT_WORD_INDEX"; payload: number }
@@ -31,7 +31,7 @@ export type IGameStateAction =
 
 export type IGameActions = {
   setBaseWord: (baseWord: string) => void;
-  setScore: (score: number) => void;
+  setScore: (score: IGameScore) => void;
   setWords: (words: IGameWord[]) => void;
   setIsGameOver: (isGameOver: boolean) => void;
   setCurrentWordIndex: (currentWordIndex: number) => void;

@@ -9,7 +9,9 @@ async function WordGameLib() {
       const { data } = await axios.get(
         "https://raw.githubusercontent.com/dwyl/english-words/master/words.txt"
       );
-      globalVar[wordKeySymbol] = data.split("\n");
+      globalVar[wordKeySymbol] = data
+        .map((w: string) => w.toLowerCase())
+        .split("\n");
     }
   } catch (error) {
     globalVar[wordKeySymbol] = [
@@ -18,7 +20,10 @@ async function WordGameLib() {
       "Copete",
       "Omitir",
       "Arruga",
-    ];
+      "Pinto",
+      "Pinta",
+      "Pinte",
+    ].map((w) => w.toLowerCase());
     console.log(error);
   }
 
@@ -42,7 +47,7 @@ async function WordGameLib() {
     if (inputWord.length < baseWord.length) {
       throw new Error("Word too short");
     }
-    if (!globalVar[wordKeySymbol].includes(_inputWord)) {
+    if (!globalVar[wordKeySymbol].includes(inputWord)) {
       throw new Error("Word not found");
     }
     for (let i = 0; i < inputWord.length; i++) {

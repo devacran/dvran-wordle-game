@@ -8,12 +8,13 @@ import {
   IGameProviderProps,
   IGameStateAction as IGameStateActionType,
   IGameStateAction,
+  IGameScore,
 } from "./Game.types";
 
 const initialWords: IGameWord[] = [];
 export const intitialState: IGameState = {
   baseWord: "",
-  score: 0,
+  score: { wins: 0, losses: 0 },
   words: initialWords,
   isGameOver: false,
   currentWordIndex: 0,
@@ -155,7 +156,7 @@ export function useGameMutations() {
       payload: baseWord,
     });
   };
-  const setScore = (score: number) => {
+  const setScore = (score: IGameScore) => {
     dispatch({
       type: "SET_SCORE",
       payload: score,
