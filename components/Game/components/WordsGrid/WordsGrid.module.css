@@ -3,9 +3,20 @@
   flex-direction: column;
   gap: 1rem;
   width: min-content;
-  margin: 0 auto;
+  margin: 2rem auto;
 }
 .word {
   display: flex;
   gap: 1rem;
+}
+.char {
+  width: 40px;
+  height: 40px;
+}
+
+@media screen and (min-width: 768px) {
+  .char {
+    width: 60px;
+    height: 60px;
+  }
 }

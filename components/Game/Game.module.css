@@ -1,0 +1,14 @@
+.game-page {
+  min-height: 100vh;
+}
+.game-content {
+  padding: 0 5%;
+}
+.game-header {
+  background: inherit;
+}
+@media screen and (min-width: 768px) {
+  .game-content {
+    padding: 0 15%;
+  }
+}

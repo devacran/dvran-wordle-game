@@ -1,16 +1,13 @@
 import React, { FC, useEffect, useReducer, useRef, useState } from "react";
+import { Layout } from "antd";
 import axios, { AxiosError } from "axios";
-import Keyboard, { KeyboardReactInterface } from "react-simple-keyboard";
 import "react-simple-keyboard/build/css/index.css";
 import WordsGrid from "./components/WordsGrid/WordGrid";
 import { IGameWord } from "./components/WordsGrid/WordsGrid.types";
-import {
-  IGameCharState,
-  IGameState,
-  IWordValidationResponse,
-} from "./Game.types";
-import GameSyles from "./Game.module.css";
+import { IGameCharState, IWordValidationResponse } from "./Game.types";
+import styles from "./Game.module.css";
 import { useGameState, useGameMutations } from "./Game.state";
+import GameKeyboard from "./components/GameKeyboard";
 
 const gameLevel: [number, number] = [2, 5];
 const levelAttempts = gameLevel[0];
@@ -41,7 +38,6 @@ const Game: FC = () => {
   } = actions;
 
   const [isOpenWinModal, setIsOpenWinModal] = useState(false);
-  const ref = useRef<KeyboardReactInterface | null>(null);
   const [canSaveInLocalStorage, setCanSaveInLocalStorage] = useState(false);
   const finishGame = () => {
     setIsGameOver(true);
@@ -49,6 +45,7 @@ const Game: FC = () => {
     document.cookie = `game-over=true; expires=${fiveMinutesLater.toUTCString()}`;
     localStorage.removeItem("game-state");
   };
+
   const switchToNextWord = () => {
     setSwitchToNewWord();
   };
@@ -244,35 +241,21 @@ const Game: FC = () => {
   }, []);
 
   return (
-    <main className="container">
-      <div className={GameSyles.game}>
-        <header>
-          <h1>Wordle</h1>
-        </header>
+    <Layout className={styles["game-page"]}>
+      <Layout.Header className={styles["game-header"]}>
+        <h1>Wordle</h1>
+      </Layout.Header>
+      <Layout.Content className={styles["game-content"]}>
+        <div>
+          <WordsGrid words={words} />
+        </div>
         <section className="mt-5 mb-5">
           <div>
-            <WordsGrid words={words} />
+            <GameKeyboard handleKeyClick={handleKeyClick} />
           </div>
         </section>
-        <section className="mt-5 mb-5">
-          <div>
-            <Keyboard
-              keyboardRef={(r) => {
-                ref.current = r;
-              }}
-              onKeyPress={handleKeyClick}
-              layout={{
-                default: [
-                  "q w e r t y u i o p",
-                  "a s d f g h j k l",
-                  "{enter} z x c v b n m {bksp}",
-                ],
-              }}
-            />
-          </div>
-        </section>
-      </div>
-    </main>
+      </Layout.Content>
+    </Layout>
   );
 };
 
