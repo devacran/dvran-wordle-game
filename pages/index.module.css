@@ -1,0 +1,30 @@
+.home-page {
+  min-height: 100vh;
+}
+.home {
+  display: flex;
+  flex-direction: column;
+  padding: 0 15%;
+}
+.home-header {
+  background: inherit;
+}
+.char {
+  width: 40px;
+  height: 40px;
+}
+.word {
+  display: flex;
+  gap: 1rem;
+  width: min-content;
+  margin: 1rem auto;
+}
+.start-button {
+  background: green;
+  height: 40px;
+}
+@media screen and (min-width: 768px) {
+  .start-button {
+    width: 100px;
+  }
+}

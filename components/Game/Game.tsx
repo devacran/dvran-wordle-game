@@ -1,61 +1,58 @@
-import React, { createContext, FC, useEffect, useRef, useState } from "react";
-import axios from "axios";
-import Keyboard, { KeyboardReactInterface } from "react-simple-keyboard";
+import React, { FC, useEffect, useReducer, useRef, useState } from "react";
+import { Layout } from "antd";
+import axios, { AxiosError } from "axios";
 import "react-simple-keyboard/build/css/index.css";
-import WordsGrid from "./components/WordsGrid/WordGrid";
+import WordsGrid from "./components/WordsGrid";
 import { IGameWord } from "./components/WordsGrid/WordsGrid.types";
-import { ICharBox } from "./components/CharBox/CharBox.types";
 import { IGameCharState, IWordValidationResponse } from "./Game.types";
-import GameSyles from "./Game.module.css";
-import GameStatistics from "./components/GameStatistics";
+import styles from "./Game.module.css";
+import { useGameState, useGameMutations } from "./Game.state";
+import GameKeyboard from "./components/GameKeyboard";
 
-const gameLevel = [4, 6];
-const gridY = gameLevel[0];
-const gridX = gameLevel[1];
+const gameLevel: [number, number] = [2, 5];
+const levelAttempts = gameLevel[0];
+const wordLevelLength = gameLevel[1];
 
 const Game: FC = () => {
-  const [baseWord, setBaseWord] = useState("");
-  const [puntuation, setPuntuation] = useState(0);
-  const [gameWords, setGameWords] = useState<IGameWord[]>([]);
-  const [currentWordIndex, setCurrentWordIndex] = useState(0);
-  const [currentCharIndex, setCurrentCharIndex] = useState(0);
-  const [isGameOver, setIsGameOver] = useState(false);
-  const [currentWordState, setCurrentWordState] = useState<IGameCharState[]>(
-    []
-  );
-  const [isOpenWinModal, setIsOpenWinModal] = useState(false);
-  const currentWord = gameWords[currentWordIndex];
-  const ref = useRef<KeyboardReactInterface | null>(null);
+  const state = useGameState();
+  const actions = useGameMutations();
 
+  const {
+    baseWord,
+    score,
+    words,
+    currentWordIndex,
+    currentCharIndex,
+    isGameOver,
+    currentWordRef,
+  } = state;
+
+  const {
+    setScore,
+    setWordValidation,
+    setCurrentCharIndex,
+    setIsGameOver,
+    setCharValue,
+    setSwitchToNewWord,
+    setInitGame,
+  } = actions;
+
+  const [isOpenWinModal, setIsOpenWinModal] = useState(false);
+  const [canSaveInLocalStorage, setCanSaveInLocalStorage] = useState(false);
   const finishGame = () => {
     setIsGameOver(true);
+    const fiveMinutesLater = new Date(new Date().getTime() + 5 * 60 * 1000);
+    document.cookie = `game-over=true; expires=${fiveMinutesLater.toUTCString()}`;
+    localStorage.removeItem("game-state");
   };
+
   const switchToNextWord = () => {
-    setCurrentCharIndex(0);
-    setCurrentWordIndex((current) => current + 1);
+    setSwitchToNewWord();
   };
   const switchToNextChar = () => {
     setCurrentCharIndex(currentCharIndex + 1);
   };
-  const updateGameWords = (wordValidation: IGameCharState[]) => {
-    const newGameWords: IGameWord[] = gameWords.map((word, idx) => {
-      if (idx === currentWordIndex) {
-        return {
-          ...word,
-          value: word.value.map((char, charIdx) => {
-            const newChar: ICharBox = {
-              ...char,
-              state: wordValidation[charIdx],
-            };
-            return newChar;
-          }),
-        };
-      }
-      return word;
-    });
 
-    setGameWords(newGameWords);
-  };
   const mapWordValidationResponse = (data: IWordValidationResponse) => {
     const mapedValidation: IGameCharState[] = data.result.map((r) => {
       if (String(r) === "-1") {
@@ -71,20 +68,37 @@ const Game: FC = () => {
   };
   const backspace = () => {
     if (currentCharIndex > 0) {
-      currentWord.value[currentCharIndex - 1] = {
+      currentWordRef.value[currentCharIndex - 1] = {
         value: " ",
         state: "idle",
       };
-      setCurrentCharIndex((current) => current - 1);
+      setCurrentCharIndex(currentCharIndex - 1);
     }
   };
 
-  const openWinModal = () => {
-    setIsGameOver(true);
+  const winGame = () => {
+    setScore({ ...score, wins: score.wins + 1 });
+    finishGame();
     setIsOpenWinModal(true);
+    alert("You win!, your score is: " + String(score.wins + 1));
   };
-  const submitWord = async () => {
-    const wordToSubmit = currentWord.value.map((char) => char.value).join("");
+  const looseGame = () => {
+    setScore({ ...score, losses: score.losses + 1 });
+    finishGame();
+    alert("You loose!");
+  };
+
+  const saveGameStateInLocalStorage = () => {
+    const gameState = {
+      baseWord,
+      score,
+      words,
+      currentWordIndex,
+    };
+    localStorage.setItem("game-state", JSON.stringify(gameState));
+  };
+
+  const submitWord = async (wordToSubmit: string) => {
     try {
       const { data } = await axios.post<IWordValidationResponse>(
         "api/game/validate-word",
@@ -97,23 +111,29 @@ const Game: FC = () => {
       const isCorrectWord = wordValidation.every(
         (validation) => validation === "valid"
       );
-      setCurrentWordState(wordValidation);
-      updateGameWords(wordValidation);
+
+      setWordValidation(wordValidation);
+
       if (isCorrectWord) {
-        setPuntuation((puntuation) => puntuation + 1);
-        openWinModal();
+        return winGame();
       }
-      if (currentWordIndex === gameWords.length - 1) {
-        finishGame();
+
+      if (currentWordIndex === words.length - 1) {
+        return looseGame();
       } else {
         switchToNextWord();
       }
+      setCanSaveInLocalStorage(true);
     } catch (error) {
-      console.error(error);
+      const { response } = error as AxiosError<{ error: string }>;
+      if (response?.data.error === "Word not found") {
+        alert("Palabra no encontrada");
+      }
     }
   };
 
   const handleKeyClick = async (btnValue: string) => {
+    const wordIsNotComplete = currentCharIndex < wordLevelLength;
     if (isGameOver) {
       return;
     }
@@ -123,86 +143,119 @@ const Game: FC = () => {
       return;
     }
 
-    if (btnValue === "{enter}") {
-      submitWord();
-      return;
-    }
-
-    currentWord.value[currentCharIndex] = { value: btnValue, state: "idle" };
-
-    if (currentCharIndex === gridX - 1) {
-      await submitWord();
-    } else {
+    if (wordIsNotComplete) {
+      if (btnValue === "{enter}") {
+        return;
+      }
+      setCharValue(currentCharIndex, btnValue);
       switchToNextChar();
+    } else {
+      if (btnValue === "{enter}") {
+        const wordStringToSubmit = currentWordRef.value
+          .map((char) => char.value)
+          .join("");
+        let stringArr = wordStringToSubmit.split("");
+        stringArr[currentCharIndex] = btnValue;
+        return submitWord(wordStringToSubmit);
+      } else {
+        return;
+      }
     }
   };
 
-  const getBaseWord = async () => {
+  const getBaseWord = async (): Promise<string | undefined> => {
     try {
-      const { data } = await axios.get<string>("api/game/get-word");
+      const { data } = await axios.get("api/game/get-word", {
+        params: { level: wordLevelLength },
+      });
       return data.data;
     } catch (error) {
       console.error(error);
     }
   };
 
-  const initGame = async () => {
-    const baseWord = await getBaseWord();
-    setBaseWord(baseWord);
-    const startingWordsFields: IGameWord[] = [];
-    for (let i = 0; i < gameLevel[0]; i++) {
-      const word: IGameWord = { value: [], baseValue: baseWord };
-      word.value.length = gameLevel[1];
-      word.value.fill({ value: "", state: "idle" });
-      startingWordsFields.push(word);
+  const loadGameStateFromStorage = () => {
+    const gameState = localStorage.getItem("game-state");
+    if (gameState) {
+      const parsedGameState = JSON.parse(gameState);
+      setInitGame({
+        baseWord: parsedGameState.baseWord,
+        score: parsedGameState.score,
+        words: parsedGameState.words,
+        currentWordIndex: parsedGameState.currentWordIndex,
+        gameLevel: parsedGameState.gameLevel,
+        currentCharIndex: 0,
+        isGameOver: false,
+      });
+
+      return;
     }
-    setGameWords(startingWordsFields);
-    setCurrentWordState(
-      baseWord
-        .replaceAll(/./g, "idle ")
-        .split(" ")
-        .slice(0, -1) as IGameCharState[]
-    );
-    getBaseWord();
+    throw new Error("No game state found");
+  };
+
+  const initGame = async () => {
+    try {
+      loadGameStateFromStorage();
+    } catch (error) {
+      const baseWord = await getBaseWord();
+      if (!baseWord) {
+        console.error("error getting base word");
+        return;
+      }
+      const startingWordsFields: IGameWord[] = [];
+      for (let i = 0; i < gameLevel[0]; i++) {
+        const word: IGameWord = { value: [], baseValue: baseWord };
+        for (let j = 0; j < gameLevel[1]; j++) {
+          word.value.push({ value: " ", state: "idle" });
+        }
+        startingWordsFields.push(word);
+      }
+      setInitGame({
+        baseWord,
+        score: { wins: 0, losses: 0 },
+        words: startingWordsFields,
+        currentWordIndex: 0,
+        gameLevel: gameLevel,
+        currentCharIndex: 0,
+        isGameOver: false,
+      });
+    }
   };
 
   useEffect(() => {
-    initGame();
+    if (canSaveInLocalStorage) {
+      saveGameStateInLocalStorage();
+      setCanSaveInLocalStorage(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [canSaveInLocalStorage]);
+
+  useEffect(() => {
+    const gameOver = document.cookie.includes("game-over");
+    if (gameOver) {
+      setIsGameOver(true);
+    } else {
+      initGame();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
-    <main className="container">
-      <div className={GameSyles.game}>
-        <header>
-          <h1>Wordle</h1>
-        </header>
+    <Layout className={styles["game-page"]}>
+      <Layout.Header className={styles["game-header"]}>
+        <h1>Wordle</h1>
+      </Layout.Header>
+      <Layout.Content className={styles["game-content"]}>
+        <div>
+          <WordsGrid words={words} />
+        </div>
         <section className="mt-5 mb-5">
           <div>
-            <WordsGrid words={gameWords} />
+            <GameKeyboard handleKeyClick={handleKeyClick} />
           </div>
         </section>
-        <section className="mt-5 mb-5">
-          <div>
-            <Keyboard
-              keyboardRef={(r) => {
-                ref.current = r;
-              }}
-              onKeyPress={handleKeyClick}
-              layout={{
-                default: [
-                  "q w e r t y u i o p",
-                  "a s d f g h j k l",
-                  "{enter} z x c v b n m {bksp}",
-                ],
-              }}
-            />
-          </div>
-        </section>
-      </div>
-      {isOpenWinModal && (
-        <GameStatistics statics={{ puntuation: puntuation }} />
-      )}
-    </main>
+      </Layout.Content>
+    </Layout>
   );
 };
 

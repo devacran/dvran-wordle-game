@@ -1,0 +1,18 @@
+.game-keyboard {
+  background-color: transparent;
+}
+.game-keyboard-button {
+  background-color: #dce1ed !important;
+  color: #5a6376 !important;
+  border: 2px solid transparent !important;
+  border-radius: 4px !important;
+  font-weight: 700;
+  text-transform: uppercase;
+  box-shadow: none !important;
+}
+.game-keyboard-button:hover {
+  background: #c4cbdd !important;
+}
+.game-keyboard-button:active {
+  background: #b1b9ce !important;
+}
