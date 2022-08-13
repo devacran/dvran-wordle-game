@@ -7,6 +7,11 @@
 .game-header {
   background: inherit;
 }
+.game-page-message-container {
+  display: grid;
+  place-items: center;
+  height: 100vh;
+}
 @media screen and (min-width: 768px) {
   .game-content {
     padding: 0 15%;

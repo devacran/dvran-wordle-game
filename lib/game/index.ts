@@ -4,27 +4,14 @@ async function WordGameLib() {
   const wordKeySymbol = Symbol.for("words");
   const globalVar: { [wordKeySymbol]: string[] } = global as any;
 
-  try {
-    if (!globalVar[wordKeySymbol]) {
-      const { data } = await axios.get(
-        "https://raw.githubusercontent.com/dwyl/english-words/master/words.txt"
-      );
-      globalVar[wordKeySymbol] = data
-        .map((w: string) => w.toLowerCase())
-        .split("\n");
-    }
-  } catch (error) {
-    globalVar[wordKeySymbol] = [
-      "Pintar",
-      "Obispo",
-      "Copete",
-      "Omitir",
-      "Arruga",
-      "Pinto",
-      "Pinta",
-      "Pinte",
-    ].map((w) => w.toLowerCase());
-    console.log(error);
+  if (!globalVar[wordKeySymbol]) {
+    const { data } = await axios.get(
+      "https://raw.githubusercontent.com/dwyl/english-words/master/words.txt"
+    );
+
+    globalVar[wordKeySymbol] = data
+      .split("\n")
+      .map((w: string) => w.toLowerCase());
   }
 
   function getWord(gameLevel?: number) {

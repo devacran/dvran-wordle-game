@@ -1,5 +1,5 @@
 import React, { FC, useEffect, useReducer, useRef, useState } from "react";
-import { Layout } from "antd";
+import { Layout, Result, Spin } from "antd";
 import axios, { AxiosError } from "axios";
 import "react-simple-keyboard/build/css/index.css";
 import WordsGrid from "./components/WordsGrid";
@@ -9,7 +9,7 @@ import styles from "./Game.module.css";
 import { useGameState, useGameMutations } from "./Game.state";
 import GameKeyboard from "./components/GameKeyboard";
 
-const gameLevel: [number, number] = [2, 5];
+const gameLevel: [number, number] = [5, 4];
 const levelAttempts = gameLevel[0];
 const wordLevelLength = gameLevel[1];
 
@@ -37,6 +37,8 @@ const Game: FC = () => {
     setInitGame,
   } = actions;
 
+  const [error, setError] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [isOpenWinModal, setIsOpenWinModal] = useState(false);
   const [canSaveInLocalStorage, setCanSaveInLocalStorage] = useState(false);
   const finishGame = () => {
@@ -163,17 +165,6 @@ const Game: FC = () => {
     }
   };
 
-  const getBaseWord = async (): Promise<string | undefined> => {
-    try {
-      const { data } = await axios.get("api/game/get-word", {
-        params: { level: wordLevelLength },
-      });
-      return data.data;
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
   const loadGameStateFromStorage = () => {
     const gameState = localStorage.getItem("game-state");
     if (gameState) {
@@ -193,32 +184,48 @@ const Game: FC = () => {
     throw new Error("No game state found");
   };
 
+  const loadGameStateFromApi = async () => {
+    const { data } = await axios.get("api/game/get-word", {
+      params: { level: wordLevelLength },
+    });
+    const baseWord = data.data;
+    if (!baseWord) {
+      console.error("error getting base word");
+      return;
+    }
+
+    const startingWordsFields: IGameWord[] = [];
+    for (let i = 0; i < gameLevel[0]; i++) {
+      const word: IGameWord = { value: [], baseValue: baseWord };
+      for (let j = 0; j < gameLevel[1]; j++) {
+        word.value.push({ value: " ", state: "idle" });
+      }
+      startingWordsFields.push(word);
+    }
+
+    setInitGame({
+      baseWord,
+      score: { wins: 0, losses: 0 },
+      words: startingWordsFields,
+      currentWordIndex: 0,
+      gameLevel: gameLevel,
+      currentCharIndex: 0,
+      isGameOver: false,
+    });
+  };
   const initGame = async () => {
+    setLoading(true);
     try {
       loadGameStateFromStorage();
     } catch (error) {
-      const baseWord = await getBaseWord();
-      if (!baseWord) {
-        console.error("error getting base word");
-        return;
+      try {
+        await loadGameStateFromApi();
+      } catch (error) {
+        setError(true);
+        console.error(error);
       }
-      const startingWordsFields: IGameWord[] = [];
-      for (let i = 0; i < gameLevel[0]; i++) {
-        const word: IGameWord = { value: [], baseValue: baseWord };
-        for (let j = 0; j < gameLevel[1]; j++) {
-          word.value.push({ value: " ", state: "idle" });
-        }
-        startingWordsFields.push(word);
-      }
-      setInitGame({
-        baseWord,
-        score: { wins: 0, losses: 0 },
-        words: startingWordsFields,
-        currentWordIndex: 0,
-        gameLevel: gameLevel,
-        currentCharIndex: 0,
-        isGameOver: false,
-      });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -239,6 +246,25 @@ const Game: FC = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  if (loading) {
+    return (
+      <Layout className={styles["game-page"]}>
+        <div className={styles["game-page-message-container"]}>
+          <Spin size="large" />
+        </div>
+      </Layout>
+    );
+  }
+  if (error) {
+    return (
+      <Layout className={styles["game-page"]}>
+        <div className={styles["game-page-message-container"]}>
+          <Result title="500" subTitle="Sorry, something went wrong." />
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout className={styles["game-page"]}>

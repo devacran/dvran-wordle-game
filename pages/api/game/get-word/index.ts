@@ -17,8 +17,13 @@ export default async function handler(
   if (req.method === "GET") {
     const level: number = parseInt(req.query.level as string);
 
-    const word = (await wordGameLib).getWord(level);
-    res.status(200).json({ data: word });
+    try {
+      const word = (await wordGameLib).getWord(level);
+      res.status(200).json({ data: word });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: "Internal Server Error" });
+    }
   } else {
     res.status(400).json({ error: "Method not allowed" });
   }
