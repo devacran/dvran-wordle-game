@@ -34,9 +34,6 @@ async function WordGameLib() {
     if (inputWord.length < baseWord.length) {
       throw new Error("Word too short");
     }
-    if (!globalVar[wordKeySymbol].includes(inputWord)) {
-      throw new Error("Word not found");
-    }
     for (let i = 0; i < inputWord.length; i++) {
       const currentChar = inputWord[i];
       if (baseWord.includes(currentChar)) {

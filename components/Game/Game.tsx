@@ -1,5 +1,6 @@
 import React, { FC, useEffect, useReducer, useRef, useState } from "react";
-import { Layout, Result, Spin } from "antd";
+import { Button, Layout, Modal, Result, Spin } from "antd";
+import { SmileOutlined } from "@ant-design/icons";
 import axios, { AxiosError } from "axios";
 import "react-simple-keyboard/build/css/index.css";
 import WordsGrid from "./components/WordsGrid";
@@ -8,7 +9,7 @@ import { IGameCharState, IWordValidationResponse } from "./Game.types";
 import styles from "./Game.module.css";
 import { useGameState, useGameMutations } from "./Game.state";
 import GameKeyboard from "./components/GameKeyboard";
-
+import Link from "next/link";
 const gameLevel: [number, number] = [5, 4];
 const levelAttempts = gameLevel[0];
 const wordLevelLength = gameLevel[1];
@@ -38,6 +39,7 @@ const Game: FC = () => {
   } = actions;
 
   const [error, setError] = useState(false);
+  const [returnLater, setReturnLater] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isOpenWinModal, setIsOpenWinModal] = useState(false);
   const [canSaveInLocalStorage, setCanSaveInLocalStorage] = useState(false);
@@ -82,12 +84,18 @@ const Game: FC = () => {
     setScore({ ...score, wins: score.wins + 1 });
     finishGame();
     setIsOpenWinModal(true);
-    alert("You win!, your score is: " + String(score.wins + 1));
+    Modal.success({
+      title: "You win!",
+      content: "your score is: " + String(score.wins + 1),
+    });
   };
   const looseGame = () => {
     setScore({ ...score, losses: score.losses + 1 });
     finishGame();
-    alert("You loose!");
+    Modal.error({
+      title: "You loose!",
+      content: "the word was: " + baseWord,
+    });
   };
 
   const saveGameStateInLocalStorage = () => {
@@ -241,6 +249,7 @@ const Game: FC = () => {
     const gameOver = document.cookie.includes("game-over");
     if (gameOver) {
       setIsGameOver(true);
+      setReturnLater(true);
     } else {
       initGame();
     }
@@ -266,6 +275,23 @@ const Game: FC = () => {
     );
   }
 
+  if (returnLater) {
+    return (
+      <Layout className={styles["game-page"]}>
+        <div className={styles["game-page-message-container"]}>
+          <Result
+            icon={<SmileOutlined />}
+            title="Want to play again? Try in a few minutes"
+            extra={
+              <Button type="primary">
+                <Link href={"/"}>Regresar a inicio</Link>
+              </Button>
+            }
+          />
+        </div>
+      </Layout>
+    );
+  }
   return (
     <Layout className={styles["game-page"]}>
       <Layout.Header className={styles["game-header"]}>
