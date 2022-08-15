@@ -1,6 +1,6 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from "next";
-import wordGameLib from "../../../../lib/game";
+import WordGameLib, { wordsFromApi } from "../../../../lib/game/gameLib";
 
 type Data =
   | {
@@ -18,7 +18,7 @@ export default async function handler(
     const level: number = parseInt(req.query.level as string);
 
     try {
-      const word = (await wordGameLib).getWord(level);
+      const word = await WordGameLib(wordsFromApi).getWord(level);
       res.status(200).json({ data: word });
     } catch (error) {
       console.log(error);

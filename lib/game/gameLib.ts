@@ -1,20 +1,28 @@
 import axios from "axios";
 
-async function WordGameLib() {
+export async function wordsFromApi() {
+  const { data } = await axios.get(
+    "https://raw.githubusercontent.com/dwyl/english-words/master/words.txt"
+  );
+  return data;
+}
+
+function WordGameLib(wordsService: () => Promise<string>) {
   const wordKeySymbol = Symbol.for("words");
   const globalVar: { [wordKeySymbol]: string[] } = global as any;
 
-  if (!globalVar[wordKeySymbol]) {
-    const { data } = await axios.get(
-      "https://raw.githubusercontent.com/dwyl/english-words/master/words.txt"
-    );
-
-    globalVar[wordKeySymbol] = data
-      .split("\n")
-      .map((w: string) => w.toLowerCase());
+  async function fetchWords() {
+    if (!globalVar[wordKeySymbol]) {
+      const data = await wordsService();
+      globalVar[wordKeySymbol] = data
+        .split("\n")
+        .map((w: string) => w.toLowerCase());
+    }
   }
 
-  function getWord(gameLevel?: number) {
+  async function getWord(gameLevel?: number) {
+    await fetchWords();
+
     const wordsByLevel = gameLevel
       ? globalVar[wordKeySymbol].filter((word) => word.length === gameLevel)
       : globalVar[wordKeySymbol];
@@ -55,5 +63,4 @@ async function WordGameLib() {
   };
 }
 
-const wordGameLib = WordGameLib();
-export default wordGameLib;
+export default WordGameLib;
