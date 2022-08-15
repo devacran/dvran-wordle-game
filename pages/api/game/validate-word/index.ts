@@ -1,6 +1,6 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from "next";
-import wordGameLib from "../../../../lib/game";
+import WordGameLib, { wordsFromApi } from "../../../../lib/game/gameLib";
 
 type Data =
   | {
@@ -16,7 +16,7 @@ export default async function handler(
 ) {
   try {
     const { inputWord, baseWord } = req.body;
-    const result = (await wordGameLib).validateWord(inputWord, baseWord);
+    const result = WordGameLib(wordsFromApi).validateWord(inputWord, baseWord);
     res.status(200).json({ result });
   } catch (error) {
     const e = error as Error;
